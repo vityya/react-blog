@@ -11,7 +11,7 @@ export const POSTS = [
     title: "Post 2",
     description:
       "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Sapiente, fugiat harum. Voluptatibus beatae corrupti nulla, qui odit mollitia doloremque rerum magni rem aut laborum, maiores officiis laboriosam hic. Ratione, voluptas?",
-    liked: true,
+    liked: false,
   },
   {
     id: 3,
