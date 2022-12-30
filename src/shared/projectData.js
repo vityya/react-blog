@@ -1,3 +1,6 @@
+// https://63ad5349da81ba97619932f9.mockapi.io/posts
+
+
 export const POSTS = [
   {
     id: 1,

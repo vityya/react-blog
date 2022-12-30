@@ -3,11 +3,12 @@ import { POSTS } from "../../shared/projectData";
 import { BlogCard } from "./components/BlogCard";
 import { Component } from "react";
 import { AddPostForm } from "./components/AddPostForm";
+import axios from "axios";
 
 export class BlogContent extends Component {
   state = {
     showAddForm: false,
-    blogArr: JSON.parse(localStorage.getItem("blogPost")) || POSTS,
+    blogArr: [],
   };
 
   likePost = (pos) => {
@@ -34,13 +35,46 @@ export class BlogContent extends Component {
 
   handleShowAddFormShow = () => {
     this.setState({
-      showAddForm: true
-    })
-  }
+      showAddForm: true,
+    });
+  };
   handleShowAddFormhide = () => {
     this.setState({
-      showAddForm: false
-    })
+      showAddForm: false,
+    });
+  };
+
+  handleEscape = (e) => {
+    if (e.key === "Escape" && this.state.showAddForm)
+      this.handleShowAddFormhide();
+  };
+
+  addNewBlogPost = (blogPost) => {
+    this.setState((state) => {
+      const posts = [...state.blogArr];
+
+      posts.push(blogPost);
+      localStorage.setItem("blogPost", JSON.stringify(posts));
+      return {
+        blogArr: posts,
+      };
+    });
+  };
+
+  componentDidMount() {
+    axios
+      .get("https://63ad5349da81ba97619932f9.mockapi.io/posts")
+      .then((response) => {
+        this.setState({ blogArr: response.data });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    window.addEventListener("keyup", this.handleEscape);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keyup", this.handleEscape);
   }
 
   render() {
@@ -56,16 +90,27 @@ export class BlogContent extends Component {
         />
       );
     });
+    if (this.state.blogArr.length === 0) return <h1>Завантажую данні...</h1>;
     return (
-      <>
-        {this.state.showAddForm ? <AddPostForm handleShowAddFormhide={this.handleShowAddFormhide} /> : null}
+      <div className="blogPage">
+        {this.state.showAddForm && (
+          <AddPostForm
+            blogArr={this.state.blogArr}
+            addNewBlogPost={this.addNewBlogPost}
+            handleShowAddFormhide={this.handleShowAddFormhide}
+          />
+        )}
 
         <>
-          <h1>Simple Blog</h1>
-          <button className="blackBtn" onClick={this.handleShowAddFormShow}>Створити новий пост</button>
+          <h1>Блог</h1>
+          <div className="addNewPost">
+            <button className="blackBtn" onClick={this.handleShowAddFormShow}>
+              Створити новий пост
+            </button>
+          </div>
           <div className="posts">{blogPosts}</div>{" "}
         </>
-      </>
+      </div>
     );
   }
 }

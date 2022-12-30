@@ -10,20 +10,46 @@ export class AddPostForm extends Component {
 
   handlePostTitleChange = (e) => {
     this.setState({
-      postTitle: e.target.value
-    })
-  }
+      postTitle: e.target.value,
+    });
+  };
 
   handlePostDescChange = (e) => {
-    this.setState ({
-      postDescription: e.target.value
-    })
-  }
+    this.setState({
+      postDescription: e.target.value,
+    });
+  };
+
+  createPost = (e) => {
+    e.preventDefault()
+    const post = {
+      id: this.props.blogArr.length + 1,
+      title: this.state.postTitle,
+      description: this.state.postDescription,
+      liked: false,
+    };
+
+    this.props.addNewBlogPost(post);
+    this.props.handleShowAddFormhide()
+  };
+
+  // componentDidMount(){
+  //   console.log('Компонент форми відмалювався');
+
+  // }
+
+  // componentDidUpdate() {
+  //   console.log('Компонент форми обновився');
+  // }
+
+  // componentWillUnmount(){
+  //   console.log('Компонент форми видалився');
+  // }
   render() {
     const handleShowAddFormhide = this.props.handleShowAddFormhide;
     return (
       <>
-        <form action="" className="AddPostForm">
+        <form action="" className="AddPostForm" onSubmit={this.createPost}>
           <button className="hideBtn" onClick={handleShowAddFormhide}>
             <CancelIcon />
           </button>
@@ -36,6 +62,7 @@ export class AddPostForm extends Component {
               placeholder="Заголовок посту"
               value={this.state.postTitle}
               onChange={this.handlePostTitleChange}
+              required
             />
           </div>
           <div>
@@ -44,14 +71,14 @@ export class AddPostForm extends Component {
               name="postDescription"
               placeholder="Опис посту"
               value={this.state.postDescription}
-              onChange = {this.handlePostDescChange}
+              onChange={this.handlePostDescChange}
+              required
             />
           </div>
           <div>
             <button
-              className="blackBtn"
-              onClick={handleShowAddFormhide}
-              type="button"
+              className="blackBtn"              
+              type="submit"
             >
               Додати пост
             </button>
