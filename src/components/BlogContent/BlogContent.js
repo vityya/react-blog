@@ -9,6 +9,23 @@ export class BlogContent extends Component {
   state = {
     showAddForm: false,
     blogArr: [],
+    isPendiing: false,
+  };
+  fetchPost = () => {
+    this.setState({
+      isPendiing: true,
+    });
+    axios
+      .get("https://63ad5349da81ba97619932f9.mockapi.io/posts")
+      .then((response) => {
+        this.setState({
+          blogArr: response.data,
+          isPendiing: false,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   likePost = (pos) => {
@@ -21,15 +38,17 @@ export class BlogContent extends Component {
     localStorage.setItem("blogPost", JSON.stringify(temp));
   };
 
-  deletePost = (pos) => {
-    if (window.confirm(`Видалити ${this.state.blogArr[pos].title}?`)) {
-      const temp = [...this.state.blogArr];
-      temp.splice(pos, 1);
-
-      this.setState({
-        blogArr: temp,
-      });
-      localStorage.setItem("blogPost", JSON.stringify(temp));
+  deletePost = (blogPost) => {
+    if (window.confirm(`Видалити ${blogPost.title}?`)) {
+      axios
+        .delete(
+          `https://63ad5349da81ba97619932f9.mockapi.io/posts/${blogPost.id}`
+        )
+        .then((response) => {
+          console.log("Пост удален => ", response.data);
+          this.fetchPost();
+        })
+        .catch((err) => console.log(err));
     }
   };
 
@@ -62,14 +81,7 @@ export class BlogContent extends Component {
   };
 
   componentDidMount() {
-    axios
-      .get("https://63ad5349da81ba97619932f9.mockapi.io/posts")
-      .then((response) => {
-        this.setState({ blogArr: response.data });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    this.fetchPost();
     window.addEventListener("keyup", this.handleEscape);
   }
 
@@ -86,7 +98,7 @@ export class BlogContent extends Component {
           description={item.description}
           liked={item.liked}
           likePost={() => this.likePost(pos)}
-          deletePost={() => this.deletePost(pos)}
+          deletePost={() => this.deletePost(item)}
         />
       );
     });
@@ -108,6 +120,9 @@ export class BlogContent extends Component {
               Створити новий пост
             </button>
           </div>
+          {
+          this.state.isPendiing && <h2>Зачекайте...</h2>
+          }
           <div className="posts">{blogPosts}</div>{" "}
         </>
       </div>
