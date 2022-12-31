@@ -4,6 +4,7 @@ import { BlogCard } from "./components/BlogCard";
 import { Component } from "react";
 import { AddPostForm } from "./components/AddPostForm";
 import axios from "axios";
+import CircularProgress from "@mui/material/CircularProgress";
 
 export class BlogContent extends Component {
   state = {
@@ -12,9 +13,6 @@ export class BlogContent extends Component {
     isPendiing: false,
   };
   fetchPost = () => {
-    this.setState({
-      isPendiing: true,
-    });
     axios
       .get("https://63ad5349da81ba97619932f9.mockapi.io/posts")
       .then((response) => {
@@ -28,19 +26,31 @@ export class BlogContent extends Component {
       });
   };
 
-  likePost = (pos) => {
-    const temp = [...this.state.blogArr];
-    temp[pos].liked = !temp[pos].liked;
-    this.setState({
-      blogArr: temp,
-    });
+  likePost = (blogPost) => {
+    const temp = { ...blogPost };
+    temp.liked = !temp.liked;
 
-    localStorage.setItem("blogPost", JSON.stringify(temp));
+    axios
+      .put(
+        `https://63ad5349da81ba97619932f9.mockapi.io/posts/${blogPost.id}`,
+        temp
+      )
+      .then((response) => {
+        console.log("Пост зміннений =>", response.data);
+        this.fetchPost();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   deletePost = (blogPost) => {
     if (window.confirm(`Видалити ${blogPost.title}?`)) {
+      this.setState({
+        isPendiing: true,
+      });
       axios
+
         .delete(
           `https://63ad5349da81ba97619932f9.mockapi.io/posts/${blogPost.id}`
         )
@@ -69,15 +79,18 @@ export class BlogContent extends Component {
   };
 
   addNewBlogPost = (blogPost) => {
-    this.setState((state) => {
-      const posts = [...state.blogArr];
-
-      posts.push(blogPost);
-      localStorage.setItem("blogPost", JSON.stringify(posts));
-      return {
-        blogArr: posts,
-      };
+    this.setState({
+      isPendiing: true,
     });
+    axios
+      .post("https://63ad5349da81ba97619932f9.mockapi.io/posts/", blogPost)
+      .then((response) => {
+        console.log("Пост створенний => ", response.data);
+        this.fetchPost();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   componentDidMount() {
@@ -97,12 +110,14 @@ export class BlogContent extends Component {
           title={item.title}
           description={item.description}
           liked={item.liked}
-          likePost={() => this.likePost(pos)}
+          likePost={() => this.likePost(item)}
           deletePost={() => this.deletePost(item)}
         />
       );
     });
     if (this.state.blogArr.length === 0) return <h1>Завантажую данні...</h1>;
+
+    const postOpacity = this.state.isPendiing ? 0.5 : 1;
     return (
       <div className="blogPage">
         {this.state.showAddForm && (
@@ -120,10 +135,11 @@ export class BlogContent extends Component {
               Створити новий пост
             </button>
           </div>
-          {
-          this.state.isPendiing && <h2>Зачекайте...</h2>
-          }
-          <div className="posts">{blogPosts}</div>{" "}
+
+          <div className="posts" style={{ opacity: postOpacity }}>
+            {blogPosts}
+          </div>
+          {this.state.isPendiing && <CircularProgress className="preloader" />}
         </>
       </div>
     );
