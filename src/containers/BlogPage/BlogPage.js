@@ -1,4 +1,4 @@
-import "./BlogContent.css";
+import "./BlogPage.css";
 import { POSTS } from "../../shared/projectData";
 import { BlogCard } from "./components/BlogCard";
 import { Component } from "react";
@@ -7,7 +7,9 @@ import axios from "axios";
 import CircularProgress from "@mui/material/CircularProgress";
 import { EditPostForm } from "./components/EditPostForm";
 
-export class BlogContent extends Component {
+let source;
+
+export class BlogPage extends Component {
   state = {
     showAddForm: false,
     showEditForm: false,
@@ -16,8 +18,11 @@ export class BlogContent extends Component {
     selectedPost: {},
   };
   fetchPost = () => {
+    source = axios.CancelToken.source();
     axios
-      .get("https://63ad5349da81ba97619932f9.mockapi.io/posts")
+      .get("https://63ad5349da81ba97619932f9.mockapi.io/posts", {
+        cancelToken: source.token,
+      })
       .then((response) => {
         this.setState({
           blogArr: response.data,
@@ -28,6 +33,17 @@ export class BlogContent extends Component {
         console.log(err);
       });
   };
+
+  componentDidMount() {
+    this.fetchPost();
+    window.addEventListener("keyup", this.handleEscape);
+  }
+
+  componentWillUnmount() {
+    if (source) {
+      source.cancel("Axios get canceled");
+    }
+  }
 
   likePost = (blogPost) => {
     const temp = { ...blogPost };
@@ -113,15 +129,18 @@ export class BlogContent extends Component {
     });
 
     axios
-    .put(`https://63ad5349da81ba97619932f9.mockapi.io/posts/${updatedBlogPost.id}`, updatedBlogPost)
-    .then((response) => {
-      console.log("Пост відридагований => ", response.data);
-      this.fetchPost();
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  }
+      .put(
+        `https://63ad5349da81ba97619932f9.mockapi.io/posts/${updatedBlogPost.id}`,
+        updatedBlogPost
+      )
+      .then((response) => {
+        console.log("Пост відридагований => ", response.data);
+        this.fetchPost();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   handleSelectPost = (blogPost) => {
     this.setState({
@@ -129,17 +148,12 @@ export class BlogContent extends Component {
     });
   };
 
-  componentDidMount() {
-    this.fetchPost();
-    window.addEventListener("keyup", this.handleEscape);
-  }
-
   componentWillUnmount() {
     window.removeEventListener("keyup", this.handleEscape);
   }
 
   render() {
-    console.log(this.state.selectedPost);
+    // console.log(this.state.selectedPost);
     const blogPosts = this.state.blogArr.map((item, pos) => {
       return (
         <BlogCard
@@ -170,7 +184,7 @@ export class BlogContent extends Component {
           <EditPostForm
             handleEditFormHide={this.handleEditFormHide}
             selectedPost={this.state.selectedPost}
-            editBlogPost = {this.editBlogPost}
+            editBlogPost={this.editBlogPost}
           />
         )}
         <>

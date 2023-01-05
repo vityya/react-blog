@@ -72,6 +72,7 @@ export class AddPostForm extends Component {
               placeholder="Опис посту"
               value={this.state.postDescription}
               onChange={this.handlePostDescChange}
+              rows="8"
               required
             />
           </div>
